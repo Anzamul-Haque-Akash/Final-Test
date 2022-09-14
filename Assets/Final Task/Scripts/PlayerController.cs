@@ -4,10 +4,9 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    private bool m_start = false; //Game start bool
+    public static bool m_start = false; //Game start bool
 
     public List<Rigidbody> rbList = new List<Rigidbody>(); //Character Rigitbody
-    private Animator anim; //character animator
 
     [SerializeField] private float m_forwedSpeed;
     [SerializeField] private float m_swapSpeed;
@@ -31,16 +30,25 @@ public class PlayerController : MonoBehaviour
     // Update is called once per frame
     void Update()
     {
-        if (Input.touchCount == 1) //Player Touch count
+        if (m_start)
         {
-            touch = Input.GetTouch(0);
-            m_playerMoveLeftRIght = true; //Player can move
+            if (Input.touchCount == 1) //Player Touch count
+            {
+                touch = Input.GetTouch(0);
+                m_playerMoveLeftRIght = true; //Player can move
+            }
+            else
+            {
+                m_playerMoveLeftRIght = false; //Player can not move
 
-            m_start = true; //game start at the first touch
-        }
-        else
-        {
-            m_playerMoveLeftRIght = false; //Player can not move
+                foreach (var rb in rbList)
+                {
+                    rb.GetComponent<Animator>().SetBool("isLeft", false);
+                    rb.GetComponent<Animator>().SetBool("isRun", false);
+                    rb.GetComponent<Animator>().SetBool("isRight", false);
+                    rb.GetComponent<Animator>().SetBool("isIdle", true);
+                }
+            }
         }
     }
 
@@ -49,11 +57,10 @@ public class PlayerController : MonoBehaviour
     {
         if (m_start)
         {
-            
-            transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + m_forwedSpeed); //Character Move forward
-
             if (m_playerMoveLeftRIght)
             {
+                transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + m_forwedSpeed * Time.fixedDeltaTime); //Character Move forward
+
                 if (touch.phase == TouchPhase.Began)
                 {
                     initialPosition = touch.position;
@@ -68,36 +75,34 @@ public class PlayerController : MonoBehaviour
                         rb.velocity = new Vector3(direction.x * Time.fixedDeltaTime * m_swapSpeed, 0f, 0f);
 
 
-                        if (direction.x < 0f)
+                        if (direction.x < 0f) //Player forward left move animation
                         {
-                            //PlayerAnimations("ForwardRunLeft"); //Player forward left move animation
-
                             rb.GetComponent<Animator>().SetBool("isLeft", true);
                             rb.GetComponent<Animator>().SetBool("isRun", false);
                             rb.GetComponent<Animator>().SetBool("isRight", false);
+                            rb.GetComponent<Animator>().SetBool("isIdle", false);
                         }
-                        else if (direction.x > 0f)
+                        else if (direction.x > 0f) //Player forward right move animation
                         {
-                            //PlayerAnimations("ForwardRunRight"); //Player forward right move animation
-
                             rb.GetComponent<Animator>().SetBool("isLeft", false);
                             rb.GetComponent<Animator>().SetBool("isRun", false);
                             rb.GetComponent<Animator>().SetBool("isRight", true);
+                            rb.GetComponent<Animator>().SetBool("isIdle", false);
                         }
                     }
                 }
             }
             else
             {
-                foreach (var rb in rbList) //New Added
+                foreach (var rb in rbList)
                 {
-                    rb.velocity = Vector3.zero;
-
                     rb.GetComponent<Animator>().SetBool("isLeft", false);
                     rb.GetComponent<Animator>().SetBool("isRun", true);
                     rb.GetComponent<Animator>().SetBool("isRight", false);
+                    rb.GetComponent<Animator>().SetBool("isIdle", false);
                 }
             }
+            
         }
     }
 

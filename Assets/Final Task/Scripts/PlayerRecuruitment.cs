@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using System.Linq;
 
 public class PlayerRecuruitment : MonoBehaviour
 {
@@ -21,9 +22,7 @@ public class PlayerRecuruitment : MonoBehaviour
                 other.collider.gameObject.AddComponent<PlayerRecuruitment>();
             }
 
-            //other.collider.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().material = PlayerController.playerControllerClass.rbList.ElementAt(0).transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().material;
-
-
+            other.collider.transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().material = PlayerController.playerControllerClass.rbList.ElementAt(0).transform.GetChild(0).GetComponent<SkinnedMeshRenderer>().material; //Same as patent material
 
         }
     }
