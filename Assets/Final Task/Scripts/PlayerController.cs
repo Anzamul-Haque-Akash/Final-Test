@@ -46,7 +46,7 @@ public class PlayerController : MonoBehaviour
     {
         if (m_start)
         {
-            PlayerAnimations("ForwardRun"); 
+            
 
             transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + m_forwedSpeed); //Character Move forward
 
@@ -60,11 +60,22 @@ public class PlayerController : MonoBehaviour
                 {
                     var direction = touch.position - initialPosition;
                     rb.velocity = new Vector3(direction.x * Time.fixedDeltaTime * m_swapSpeed, 0f, 0f);
+
+                    if (direction.x < 0f)
+                    {
+                        PlayerAnimations("ForwardRunLeft"); //Player forward left move animation 
+                    }
+                    else if(direction.x > 0f)
+                    {
+                        PlayerAnimations("ForwardRunRight"); //Player forward right move animation 
+                    }
                 }
             }
             else
             {
                 rb.velocity = Vector3.zero;
+
+                PlayerAnimations("ForwardRun"); //Player forward move animation 
             }
         }
     }
@@ -76,6 +87,18 @@ public class PlayerController : MonoBehaviour
         {
             case "ForwardRun": //Run animation play
                 anim.SetBool("isRun", true);
+                anim.SetBool("isLeft", false);
+                anim.SetBool("isRight", false);
+                break;
+            case "ForwardRunLeft": //Run left animation play
+                anim.SetBool("isLeft", true);
+                anim.SetBool("isRun", false);
+                anim.SetBool("isRight", false);
+                break;
+            case "ForwardRunRight": //Run right animation play
+                anim.SetBool("isRight", true);
+                anim.SetBool("isRun", false);
+                anim.SetBool("isLeft", false);
                 break;
         }
     }
