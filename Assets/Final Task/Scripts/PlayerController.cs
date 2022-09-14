@@ -6,8 +6,8 @@ public class PlayerController : MonoBehaviour
 {
     private bool m_start = false; //Game start bool
 
-    private Rigidbody rb; //Character Rigitbody
-    [SerializeField] Animator anim; //character animator
+    public List<Rigidbody> rbList = new List<Rigidbody>(); //Character Rigitbody
+    private Animator anim; //character animator
 
     [SerializeField] private float m_forwedSpeed;
     [SerializeField] private float m_swapSpeed;
@@ -17,12 +17,15 @@ public class PlayerController : MonoBehaviour
     bool m_playerMoveLeftRIght;
 
     Touch touch;
+
+    public static PlayerController playerControllerClass;
     
 
     // Start is called before the first frame update
     void Start()
     {
-        rb = transform.GetChild(0).GetComponent<Rigidbody>(); //Get Character Rigitbody
+        playerControllerClass = this;
+        rbList.Add(transform.GetChild(0).GetComponent<Rigidbody>()); //Get Characters Rigitbody
     }
 
     // Update is called once per frame
@@ -47,7 +50,6 @@ public class PlayerController : MonoBehaviour
         if (m_start)
         {
             
-
             transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + m_forwedSpeed); //Character Move forward
 
             if (m_playerMoveLeftRIght)
@@ -58,48 +60,44 @@ public class PlayerController : MonoBehaviour
                 }
                 else if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
                 {
-                    var direction = touch.position - initialPosition;
-                    rb.velocity = new Vector3(direction.x * Time.fixedDeltaTime * m_swapSpeed, 0f, 0f);
+                    foreach (var rb in rbList) //New Added
+                    {
+                       rb.GetComponent<Animator>();
 
-                    if (direction.x < 0f)
-                    {
-                        PlayerAnimations("ForwardRunLeft"); //Player forward left move animation 
-                    }
-                    else if(direction.x > 0f)
-                    {
-                        PlayerAnimations("ForwardRunRight"); //Player forward right move animation 
+                        var direction = touch.position - initialPosition;
+                        rb.velocity = new Vector3(direction.x * Time.fixedDeltaTime * m_swapSpeed, 0f, 0f);
+
+
+                        if (direction.x < 0f)
+                        {
+                            //PlayerAnimations("ForwardRunLeft"); //Player forward left move animation
+
+                            rb.GetComponent<Animator>().SetBool("isLeft", true);
+                            rb.GetComponent<Animator>().SetBool("isRun", false);
+                            rb.GetComponent<Animator>().SetBool("isRight", false);
+                        }
+                        else if (direction.x > 0f)
+                        {
+                            //PlayerAnimations("ForwardRunRight"); //Player forward right move animation
+
+                            rb.GetComponent<Animator>().SetBool("isLeft", false);
+                            rb.GetComponent<Animator>().SetBool("isRun", false);
+                            rb.GetComponent<Animator>().SetBool("isRight", true);
+                        }
                     }
                 }
             }
             else
             {
-                rb.velocity = Vector3.zero;
+                foreach (var rb in rbList) //New Added
+                {
+                    rb.velocity = Vector3.zero;
 
-                PlayerAnimations("ForwardRun"); //Player forward move animation 
+                    rb.GetComponent<Animator>().SetBool("isLeft", false);
+                    rb.GetComponent<Animator>().SetBool("isRun", true);
+                    rb.GetComponent<Animator>().SetBool("isRight", false);
+                }
             }
-        }
-    }
-
-    //All Character animations play from this functions 
-    public void PlayerAnimations(string s)
-    {
-        switch (s) //Animation conditions here
-        {
-            case "ForwardRun": //Run animation play
-                anim.SetBool("isRun", true);
-                anim.SetBool("isLeft", false);
-                anim.SetBool("isRight", false);
-                break;
-            case "ForwardRunLeft": //Run left animation play
-                anim.SetBool("isLeft", true);
-                anim.SetBool("isRun", false);
-                anim.SetBool("isRight", false);
-                break;
-            case "ForwardRunRight": //Run right animation play
-                anim.SetBool("isRight", true);
-                anim.SetBool("isRun", false);
-                anim.SetBool("isLeft", false);
-                break;
         }
     }
 
