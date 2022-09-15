@@ -11,7 +11,7 @@ public class UIManager : MonoBehaviour
     {
         PlayButton.SetActive(false);
 
-        PlayerController.m_start = true;
+       //PlayerController.playerControllerClass.m_start = true;
     }
 
 }//CLASS

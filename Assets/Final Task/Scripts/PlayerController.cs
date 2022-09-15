@@ -4,106 +4,87 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public static bool m_start = false; //Game start bool
-
-    public List<Rigidbody> rbList = new List<Rigidbody>(); //Character Rigitbody
-
-    [SerializeField] private float m_forwedSpeed;
-    [SerializeField] private float m_swapSpeed;
-    private Vector2 initialPosition;
-    //[SerializeField] private float m_sidewaysForce;
-
-    bool m_playerMoveLeftRIght;
-
-    Touch touch;
-
+    public bool MoveByTouch, gameState, attackToTheBoss;
+    private Vector3 Direction;
+    public List<Rigidbody> Rblst = new List<Rigidbody>();
+    [SerializeField] private float runSpeed, velocity, swipeSpeed, roadSpeed;
     public static PlayerController playerControllerClass;
-    
 
-    // Start is called before the first frame update
     void Start()
     {
         playerControllerClass = this;
-        rbList.Add(transform.GetChild(0).GetComponent<Rigidbody>()); //Get Characters Rigitbody
+        Rblst.Add(transform.GetChild(0).GetComponent<Rigidbody>());
+
     }
 
-    // Update is called once per frame
     void Update()
     {
-        if (m_start)
+        if (Input.GetMouseButtonDown(0))
         {
-            if (Input.touchCount == 1) //Player Touch count
+            MoveByTouch = true;
+        }
+
+        if (Input.GetMouseButtonUp(0))
+        {
+            MoveByTouch = false;
+        }
+
+        if (MoveByTouch)
+        {
+            Direction.x = Mathf.Lerp(Direction.x, Input.GetAxis("Mouse X"), Time.deltaTime * runSpeed);
+
+            Direction = Vector3.ClampMagnitude(Direction, 1f);
+        }
+
+        foreach (var stickman_rb in Rblst)
+        {
+            if (stickman_rb.velocity.magnitude > 0.5f)
             {
-                touch = Input.GetTouch(0);
-                m_playerMoveLeftRIght = true; //Player can move
+                stickman_rb.rotation = Quaternion.Slerp(stickman_rb.rotation, Quaternion.LookRotation(stickman_rb.velocity), Time.deltaTime * velocity);
             }
             else
             {
-                m_playerMoveLeftRIght = false; //Player can not move
-
-                foreach (var rb in rbList)
-                {
-                    rb.GetComponent<Animator>().SetBool("isLeft", false);
-                    rb.GetComponent<Animator>().SetBool("isRun", false);
-                    rb.GetComponent<Animator>().SetBool("isRight", false);
-                    rb.GetComponent<Animator>().SetBool("isIdle", true);
-                }
+                stickman_rb.rotation = Quaternion.Slerp(stickman_rb.rotation, Quaternion.identity, Time.deltaTime * velocity);
             }
         }
     }
 
-    //Fixed Update function for apply character physic functions
     private void FixedUpdate()
     {
-        if (m_start)
+        if (MoveByTouch)
         {
-            if (m_playerMoveLeftRIght)
+            transform.Translate(Vector3.forward * runSpeed * Time.fixedDeltaTime); //Character move forward
+
+            Vector3 displacement = new Vector3(Direction.x, 0f, 0f) * Time.fixedDeltaTime;
+
+            foreach (var stickman_rb in Rblst)
             {
-                transform.position = new Vector3(transform.position.x, transform.position.y, transform.position.z + m_forwedSpeed * Time.fixedDeltaTime); //Character Move forward
+                stickman_rb.velocity = new Vector3(Direction.x * Time.fixedDeltaTime * swipeSpeed, 0f, 0f) + displacement; //All Character move left and right
 
-                if (touch.phase == TouchPhase.Began)
-                {
-                    initialPosition = touch.position;
-                }
-                else if (touch.phase == TouchPhase.Moved || touch.phase == TouchPhase.Stationary)
-                {
-                    foreach (var rb in rbList) //New Added
-                    {
-                       rb.GetComponent<Animator>();
-
-                        var direction = touch.position - initialPosition;
-                        rb.velocity = new Vector3(direction.x * Time.fixedDeltaTime * m_swapSpeed, 0f, 0f);
-
-
-                        if (direction.x < 0f) //Player forward left move animation
-                        {
-                            rb.GetComponent<Animator>().SetBool("isLeft", true);
-                            rb.GetComponent<Animator>().SetBool("isRun", false);
-                            rb.GetComponent<Animator>().SetBool("isRight", false);
-                            rb.GetComponent<Animator>().SetBool("isIdle", false);
-                        }
-                        else if (direction.x > 0f) //Player forward right move animation
-                        {
-                            rb.GetComponent<Animator>().SetBool("isLeft", false);
-                            rb.GetComponent<Animator>().SetBool("isRun", false);
-                            rb.GetComponent<Animator>().SetBool("isRight", true);
-                            rb.GetComponent<Animator>().SetBool("isIdle", false);
-                        }
-                    }
-                }
+                RunAnimation(stickman_rb);
             }
-            else
+        }
+        else
+        {
+            foreach (var stickman_rb in Rblst)
             {
-                foreach (var rb in rbList)
-                {
-                    rb.GetComponent<Animator>().SetBool("isLeft", false);
-                    rb.GetComponent<Animator>().SetBool("isRun", true);
-                    rb.GetComponent<Animator>().SetBool("isRight", false);
-                    rb.GetComponent<Animator>().SetBool("isIdle", false);
-                }
+                stickman_rb.velocity = Vector3.zero;
+                IdleAnimation(stickman_rb);
             }
-            
         }
     }
+
+    //Character Animations------------
+    public void IdleAnimation(Rigidbody rb)
+    {
+        rb.GetComponent<Animator>().SetBool("isIdle", true);
+        rb.GetComponent<Animator>().SetBool("isRun", false);
+    }
+    public void RunAnimation(Rigidbody rb)
+    {
+        rb.GetComponent<Animator>().SetBool("isRun", true);
+        rb.GetComponent<Animator>().SetBool("isIdle", false); 
+    }
+    //--------------------------------
 
 }//CLASS
