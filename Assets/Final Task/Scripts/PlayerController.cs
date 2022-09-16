@@ -4,20 +4,21 @@ using UnityEngine;
 
 public class PlayerController : MonoBehaviour
 {
-    public static bool m_start;
-    public bool m_moveByTouch;
-    
+    public static bool m_start; //Game Start bool
+    public bool m_moveByTouch; //Scrren tiuch or not
+   
+    private Vector3 Direction; 
+    public List<Rigidbody> Rblst = new List<Rigidbody>(); //All added character rigidbodys
+    [SerializeField] private float runSpeed, velocity, swipeSpeed; //Run, velocity and swiping speed
+    public static PlayerController playerControllerClass; //Class
 
-    private Vector3 Direction;
-    public List<Rigidbody> Rblst = new List<Rigidbody>();
-    [SerializeField] private float runSpeed, velocity, swipeSpeed;
-    public static PlayerController playerControllerClass;
+    public bool rightSwapStop = false;
+    public  bool leftSwapStop = false;
 
     void Start()
     {
         playerControllerClass = this;
-        Rblst.Add(transform.GetChild(0).GetComponent<Rigidbody>());
-
+        Rblst.Add(transform.GetChild(0).GetComponent<Rigidbody>()); //Get stating charaacter rigidbody
     }
 
     void Update()
@@ -28,29 +29,39 @@ public class PlayerController : MonoBehaviour
             {
                 m_moveByTouch = true;
             }
-
             if (Input.GetMouseButtonUp(0))
             {
                 m_moveByTouch = false;
             }
 
-            if (m_moveByTouch)
+
+            if (m_moveByTouch) //touch left right dect
             {
                 Direction.x = Mathf.Lerp(Direction.x, Input.GetAxis("Mouse X"), Time.deltaTime * runSpeed);
 
+                if((rightSwapStop && Direction.x > 0f) || (leftSwapStop && Direction.x < 0f)) //Stop player for going (left and right) out side.
+                {
+                    Direction.x = 0;
+                }
+
                 Direction = Vector3.ClampMagnitude(Direction, 1f);
+            }
+            else
+            {
+                Direction.x = 0f;
             }
 
 
-            foreach (var stickman_rb in Rblst)
+
+            foreach (var rb in Rblst) //For Charater Rotate left and right
             {
-                if (stickman_rb.velocity.magnitude > 0.5f)
+                if (rb.velocity.magnitude > 0.5f)
                 {
-                    stickman_rb.transform.rotation = Quaternion.Slerp(stickman_rb.rotation, Quaternion.LookRotation(stickman_rb.velocity), Time.deltaTime * velocity);
+                    rb.transform.rotation = Quaternion.Slerp(rb.rotation, Quaternion.LookRotation(rb.velocity), Time.deltaTime * velocity);
                 }
                 else
                 {
-                    stickman_rb.transform.rotation = Quaternion.Slerp(stickman_rb.rotation, Quaternion.identity, Time.deltaTime * velocity);
+                    rb.transform.rotation = Quaternion.Slerp(rb.rotation, Quaternion.identity, Time.deltaTime * velocity);
                 }
             }
         }
@@ -60,7 +71,7 @@ public class PlayerController : MonoBehaviour
     //Fixed Update Function-------------
     private void FixedUpdate()
     {
-        if (m_start)
+        if (m_start) //If game start
         {
             if (m_moveByTouch)
             {
@@ -68,28 +79,28 @@ public class PlayerController : MonoBehaviour
 
                 Vector3 displacement = new Vector3(Direction.x, 0f, 0f) * Time.fixedDeltaTime;
 
-                foreach (var stickman_rb in Rblst)
+                foreach (var rb in Rblst)
                 {
-                    stickman_rb.velocity = new Vector3(Direction.x * Time.fixedDeltaTime * swipeSpeed, 0f, 0f) + displacement; //All Character move left and right
+                    rb.velocity = new Vector3(Direction.x * Time.fixedDeltaTime * swipeSpeed, 0f, 0f) + displacement; //All Character move left and right
 
-                    RunAnimation(stickman_rb);
+                    RunAnimation(rb);
                 }
             }
-            else
+            else //stop and idle mode
             {
-                foreach (var stickman_rb in Rblst)
+                foreach (var rb in Rblst)
                 {
-                    stickman_rb.velocity = Vector3.zero;
-                    IdleAnimation(stickman_rb);
+                    rb.velocity = Vector3.zero;
+                    IdleAnimation(rb);
                 }
             }
         }
         else
         {
-            foreach (var stickman_rb in Rblst)
+            foreach (var rb in Rblst)
             {
-                stickman_rb.velocity = Vector3.zero;
-                IdleAnimation(stickman_rb);
+                rb.velocity = Vector3.zero;
+                IdleAnimation(rb);
             }
         }
     }
@@ -104,6 +115,12 @@ public class PlayerController : MonoBehaviour
     {
         rb.GetComponent<Animator>().SetBool("isRun", true);
         rb.GetComponent<Animator>().SetBool("isIdle", false); 
+    }
+    public void DeathAnimation(Rigidbody rb)
+    {
+        rb.GetComponent<Animator>().SetBool("isDeath", true);
+        rb.GetComponent<Animator>().SetBool("isRun", false);
+        rb.GetComponent<Animator>().SetBool("isIdle", false);
     }
     //--------------------------------
 

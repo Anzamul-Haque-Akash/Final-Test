@@ -7,6 +7,8 @@ TagManager:
   - Add
   - Boss
   - Obs
+  - Added
+  - Enemy
   layers:
   - Default
   - TransparentFX
